@@ -1,3 +1,5 @@
+"use client";
+
 import React from "react";
 import { CommandDialogProvider } from "@/providers/command";
 import ATecCommandDialog from "@/components/ATecCmdDialog";

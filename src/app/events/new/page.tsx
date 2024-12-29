@@ -14,7 +14,6 @@ import { ZeitenFormCard } from "./(cards)/zeiten";
 import { SubmitFormCard } from "./(cards)/submit";
 import { EquipmentFormCard } from "./(cards)/equipment";
 import { getUser } from "@/lib/actions/auth";
-import { redirect } from "next/navigation";
 import { User } from "@/server/db/schema";
 import { Loading } from "@/components/Loading";
 
@@ -82,6 +81,7 @@ export default function EventForm() {
                     date: `01.01.2025`,
                     start: "08:00",
                     end: "13:25",
+                    notiz: "",
                 },
             ],
             equipment: {
@@ -102,7 +102,7 @@ export default function EventForm() {
     useEffect(() => {
         getUser().then(([success, user]) => {
             if (!success) {
-                throw redirect("/auth");
+                return;
             }
             setUser(user);
         });

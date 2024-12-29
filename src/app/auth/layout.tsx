@@ -10,7 +10,7 @@ export default async function AuthLayout({
     const [success] = await getUser();
 
     if (success) {
-        return redirect("/dashboard");
+        throw redirect("/dashboard");
     }
 
     return <Layout variant="top-center">{children}</Layout>;

@@ -1,29 +1,19 @@
-"use client";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { useIsMobile } from "@/hooks/use-mobile";
 import { UserLayout } from "@/components/layouts/user";
 import { getUser } from "@/lib/actions/auth";
-import { User } from "@/server/db/schema";
-import { redirect } from "next/navigation";
-import { useState } from "react";
 
-export default function Dashboard() {
-    const isMobile = useIsMobile();
-    const [user, setUser] = useState<User | null>(null);
-
-    getUser().then(([success, user]) => {
-        if (!success) {
-            throw redirect("/auth");
-        }
-        setUser(user);
-    });
+export default async function Dashboard() {
+    const [success, user] = await getUser();
+    if (!success) {
+        return null;
+    }
 
     return (
-        <UserLayout className={`flex w-full flex-col gap-4 ${!isMobile ? "pr-4" : "pr-2"}`}>
+        <UserLayout className={"flex w-full flex-col gap-4 sm:pr-2 md:pr-4"}>
             <Card>
                 <CardHeader>
-                    <CardTitle>Willkommen zurück, {user?.firstName}!</CardTitle>
+                    <CardTitle>Willkommen zurück, {user.firstName}!</CardTitle>
                     <CardDescription>Schön, dass du wieder da bist.</CardDescription>
                 </CardHeader>
             </Card>

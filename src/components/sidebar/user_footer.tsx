@@ -9,11 +9,11 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { ChevronsUpDown, LogOut, Cog, User2 } from "lucide-react";
 import { SidebarMenu, SidebarMenuItem, SidebarMenuButton } from "@/components/ui/sidebar";
-import { redirect } from "next/navigation";
 import { getUser, logout } from "@/lib/actions/auth";
 import { useEffect, useState } from "react";
 import { User } from "@/server/db/schema";
 import { Loading } from "../Loading";
+import { redirect } from "next/navigation";
 
 export function UserFooter() {
     const [user, setUser] = useState<User | null>();
@@ -22,7 +22,7 @@ export function UserFooter() {
     useEffect(() => {
         getUser().then(([success, user]) => {
             if (!success) {
-                throw redirect("/auth");
+                return;
             }
             setLoading(false);
             setUser(user);

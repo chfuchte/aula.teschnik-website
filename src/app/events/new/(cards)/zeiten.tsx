@@ -91,7 +91,7 @@ export function ZeitenFormCard({ form }: ZeitenFormCardProps) {
                                 </div>
                             </div>
                             <div className="flex flex-col space-y-2">
-                                <Label htmlFor={`zeiten.${index}.end`}>Notizen (optional)</Label>
+                                <Label htmlFor={`zeiten.${index}.notiz`}>Notizen (optional)</Label>
                                 <Textarea
                                     placeholder="z.B. Generalprobe, anderer Veranstaltungsort, etc."
                                     id={`zeiten.${index}.notiz`}

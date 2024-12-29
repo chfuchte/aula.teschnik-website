@@ -1,49 +1,47 @@
-import { cookies } from "next/headers";
 import { NextResponse, type MiddlewareConfig, type NextMiddleware } from "next/server";
-import { User } from "./server/db/schema";
 import { db } from "./server/db";
 
-export const middleware: NextMiddleware = async (request) => {
-    const [success] = await getUser();
+export const middleware: NextMiddleware = (request, event) => {
+    const token = request.cookies.get("session");
 
-    if (!success) {
-        return NextResponse.rewrite(new URL('/auth', request.url))
+    if (!token || !token.value) {
+        return NextResponse.redirect(new URL('/auth', request.url))
     }
+
+    event.waitUntil(new Promise<void>(async (resolve) => {
+        if (!await getUser(token.value)) {
+            console.log("User not found")
+            return NextResponse.redirect(new URL('/auth', request.url))
+        }
+        resolve();
+    }));
+
+    return NextResponse.next()
 };
 
 export const config: MiddlewareConfig = {
     matcher: [
-
+        "/dashboard:path*",
+        "/events:path*",
     ],
 };
 
-async function getUser(): Promise<[true, User] | [false, null]> {
-    try {
-        const cookieStore = await cookies();
-        const token = cookieStore.get("session");
+async function getUser(token: string) {
+    const userSessionResult = await db.query.sessions.findFirst({
+        where: (sessions, { eq }) => eq(sessions.token, token),
+        columns: {
+            id: false,
+            token: false,
+            userId: false,
+        },
+        with: {
+            user: true,
+        },
+    });
 
-        if (!token || !token.value) {
-            return [false, null];
-        }
-
-        const userSessionResult = await db.query.sessions.findFirst({
-            where: (sessions, { eq }) => eq(sessions.token, token.value),
-            columns: {
-                id: false,
-                token: false,
-                userId: false,
-            },
-            with: {
-                user: true,
-            },
-        });
-
-        if (!userSessionResult || !userSessionResult.user) {
-            return [false, null];
-        }
-
-        return [true, userSessionResult.user];
-    } catch {
-        return [false, null];
+    if (!userSessionResult || !userSessionResult.user) {
+        return false;
     }
+
+    return true;
 }
