@@ -1,5 +1,7 @@
+"use client";
+
 import { useFieldArray, UseFormReturn } from "react-hook-form";
-import { FormSchema } from "..";
+import { FormSchema } from "../page";
 import { Card, CardHeader, CardTitle, CardContent, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";

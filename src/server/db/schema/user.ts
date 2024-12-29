@@ -5,8 +5,9 @@ import { sessions } from "./session";
 export const rolesEnum = pgEnum("permissions", ["ADMIN", "ATEC", "USER", "REGISTERED"] as const);
 
 export const users = pgTable("users", {
-    id: uuid("id").unique().primaryKey(),
+    id: uuid("id").defaultRandom().primaryKey(),
     email: varchar("email").unique().notNull(),
+    password: varchar("password").notNull(),
     firstName: varchar("first_name").notNull(),
     lastName: varchar("last_name").notNull(),
     role: rolesEnum().notNull().default("REGISTERED"),
@@ -15,7 +16,5 @@ export const users = pgTable("users", {
 export type User = InferSelectModel<typeof users>;
 
 export const userRelations = relations(users, ({ many }) => ({
-    sessions: many(sessions, {
-        relationName: "session",
-    }),
+    sessions: many(sessions),
 }));

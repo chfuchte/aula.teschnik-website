@@ -9,19 +9,28 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { ChevronsUpDown, LogOut, Cog, User2 } from "lucide-react";
 import { SidebarMenu, SidebarMenuItem, SidebarMenuButton } from "@/components/ui/sidebar";
-import { getUser } from "@/lib/auth/user";
 import { redirect } from "next/navigation";
-import { deleteSession } from "@/lib/auth/session";
+import { getUser, logout } from "@/lib/actions/auth";
+import { useEffect, useState } from "react";
+import { User } from "@/server/db/schema";
+import { Loading } from "../Loading";
 
-export async function UserFooter() {
-    const [success, user] = await getUser();
+export function UserFooter() {
+    const [user, setUser] = useState<User | null>();
+    const [loading, setLoading] = useState(true);
 
-    if (!success) {
-        throw redirect("/auth");
-    }
+    useEffect(() => {
+        getUser().then(([success, user]) => {
+            if (!success) {
+                throw redirect("/auth");
+            }
+            setLoading(false);
+            setUser(user);
+        });
+    }, [setUser]);
 
-    const logout = async () => {
-        if (await deleteSession()) {
+    const logoutHandler = async () => {
+        if (await logout()) {
             throw redirect("/");
         }
     };
@@ -34,17 +43,23 @@ export async function UserFooter() {
                         <SidebarMenuButton
                             size="lg"
                             className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground">
-                            <Avatar className="h-8 w-8 rounded-lg">
-                                <AvatarImage src={"/images/logo.png"} alt="ATec Logo" />
-                                <AvatarFallback className="rounded-lg">
-                                    {`${user.firstName.charAt(0)}${user.lastName.charAt(0)}`}
-                                </AvatarFallback>
-                            </Avatar>
-                            <div className="grid flex-1 text-left text-sm">
-                                <span className="truncate font-semibold leading-3">{`${user.firstName} ${user.lastName}`}</span>
-                                <span className="truncate text-sm leading-tight">{user.role}</span>
-                            </div>
-                            <ChevronsUpDown className="ml-auto size-4" />
+                            {loading || !user ? (
+                                <Loading />
+                            ) : (
+                                <>
+                                    <Avatar className="h-8 w-8 rounded-lg">
+                                        <AvatarImage src={"/images/logo.png"} alt="ATec Logo" />
+                                        <AvatarFallback className="rounded-lg">
+                                            {`${user.firstName.charAt(0)}${user.lastName.charAt(0)}`}
+                                        </AvatarFallback>
+                                    </Avatar>
+                                    <div className="grid flex-1 text-left text-sm">
+                                        <span className="truncate font-semibold leading-3">{`${user.firstName} ${user.lastName}`}</span>
+                                        <span className="truncate text-sm leading-tight">{user.role}</span>
+                                    </div>
+                                    <ChevronsUpDown className="ml-auto size-4" />
+                                </>
+                            )}
                         </SidebarMenuButton>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent
@@ -63,7 +78,7 @@ export async function UserFooter() {
                             </DropdownMenuItem>
                         </DropdownMenuGroup>
                         <DropdownMenuSeparator />
-                        <DropdownMenuItem onClick={logout}>
+                        <DropdownMenuItem onClick={logoutHandler}>
                             <LogOut />
                             Abmelden
                         </DropdownMenuItem>

@@ -1,3 +1,5 @@
+"use client";
+
 import {
     Sidebar,
     SidebarContent,
@@ -16,6 +18,7 @@ import { UserFooter } from "./user_footer";
 import { Calendar, Home, Plus } from "lucide-react";
 import { useCommandDialog } from "@/hooks/use-cmd";
 import Link from "next/link";
+import { Suspense } from "react";
 
 export default function ATecSidebar() {
     const { setOpen } = useCommandDialog();
@@ -71,7 +74,9 @@ export default function ATecSidebar() {
                 </SidebarGroup>
             </SidebarContent>
             <SidebarFooter>
-                <UserFooter />
+                <Suspense fallback={null}>
+                    <UserFooter />
+                </Suspense>
             </SidebarFooter>
         </Sidebar>
     );

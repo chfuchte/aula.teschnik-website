@@ -5,24 +5,13 @@ import { SidebarProvider, SidebarTrigger, useSidebar } from "@/components/ui/sid
 import ATecSidebar from "@/components/sidebar";
 import Footer from "@/components/ATecFooter";
 import { Toaster as SonnerToaster } from "@/components/ui/sonner";
-import { getUser } from "@/lib/auth/user";
-import { redirect } from "next/navigation";
 
 type LayoutProps = {
     children: React.ReactNode;
     className?: string;
 };
 
-/**
- * redirects to /auth if the user is not authenticated
- */
-export async function ProtectedLayout({ children, className }: Readonly<LayoutProps>) {
-    const [success] = await getUser();
-
-    if (!success) {
-        throw redirect("/auth");
-    }
-
+export function UserLayout({ children, className }: Readonly<LayoutProps>) {
     return (
         <>
             <CommandDialogProvider>

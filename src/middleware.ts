@@ -1,9 +1,23 @@
-"use server"
 import { cookies } from "next/headers";
-import { db } from "../../server/db";
-import { User } from "../../server/db/schema";
+import { NextResponse, type MiddlewareConfig, type NextMiddleware } from "next/server";
+import { User } from "./server/db/schema";
+import { db } from "./server/db";
 
-export async function getUser(): Promise<[true, User] | [false, null]> {
+export const middleware: NextMiddleware = async (request) => {
+    const [success] = await getUser();
+
+    if (!success) {
+        return NextResponse.rewrite(new URL('/auth', request.url))
+    }
+};
+
+export const config: MiddlewareConfig = {
+    matcher: [
+
+    ],
+};
+
+async function getUser(): Promise<[true, User] | [false, null]> {
     try {
         const cookieStore = await cookies();
         const token = cookieStore.get("session");

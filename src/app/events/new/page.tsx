@@ -1,7 +1,9 @@
+"use client";
+
 import { CardDescription } from "@/components/ui/card";
 import { Form } from "@/components/ui/form";
 import { useIsMobile } from "@/hooks/use-mobile";
-import { ProtectedLayout } from "@/components/layouts/authenticated";
+import { UserLayout } from "@/components/layouts/user";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useEffect, useState } from "react";
 import { useForm, UseFormReturn } from "react-hook-form";
@@ -11,9 +13,10 @@ import { GenerellesFormCard } from "./(cards)/generelles";
 import { ZeitenFormCard } from "./(cards)/zeiten";
 import { SubmitFormCard } from "./(cards)/submit";
 import { EquipmentFormCard } from "./(cards)/equipment";
-import { getUser } from "@/lib/auth/user";
+import { getUser } from "@/lib/actions/auth";
 import { redirect } from "next/navigation";
 import { User } from "@/server/db/schema";
+import { Loading } from "@/components/Loading";
 
 const formSchema = z.object({
     veranstalter: z.object({
@@ -97,14 +100,15 @@ export default function EventForm() {
     });
 
     useEffect(() => {
-        const setUserDate = async () => {
-            const [success, user] = await getUser();
+        getUser().then(([success, user]) => {
             if (!success) {
-                redirect("/login");
+                throw redirect("/auth");
             }
             setUser(user);
-        };
+        });
+    }, [setUser]);
 
+    useEffect(() => {
         if (user) {
             form.setValue("veranstalter.vorname", user.firstName);
             form.setValue("veranstalter.nachname", user.lastName);
@@ -119,8 +123,6 @@ export default function EventForm() {
                 end: "13:25",
             },
         ]);
-
-        setUserDate();
     }, [user, form]);
 
     const onSubmit = (data: FormSchema) => {
@@ -128,7 +130,7 @@ export default function EventForm() {
     };
 
     return (
-        <ProtectedLayout
+        <UserLayout
             className={`flex w-full flex-col items-center justify-start gap-4 p-8 ${!isMobile ? "pr-4" : "pr-2"}`}>
             <Form {...form}>
                 <form onSubmit={form.handleSubmit(onSubmit)} className="h-full w-5/6 max-w-prose space-y-4">
@@ -138,13 +140,19 @@ export default function EventForm() {
                         können Sie die technische Betreuung einer Veranstaltung beantragen.
                     </CardDescription>
 
-                    <VeranstalterFormCard form={form} />
-                    <GenerellesFormCard form={form} />
-                    <ZeitenFormCard form={form} />
-                    <EquipmentFormCard form={form} />
-                    <SubmitFormCard form={form} />
+                    {!user ? (
+                        <Loading />
+                    ) : (
+                        <>
+                            <VeranstalterFormCard form={form} />
+                            <GenerellesFormCard form={form} />
+                            <ZeitenFormCard form={form} />
+                            <EquipmentFormCard form={form} />
+                            <SubmitFormCard form={form} />
+                        </>
+                    )}
                 </form>
             </Form>
-        </ProtectedLayout>
+        </UserLayout>
     );
 }

@@ -2,17 +2,25 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { useIsMobile } from "@/hooks/use-mobile";
-import { ProtectedLayout } from "@/components/layouts/authenticated";
+import { UserLayout } from "@/components/layouts/user";
+import { getUser } from "@/lib/actions/auth";
+import { User } from "@/server/db/schema";
+import { redirect } from "next/navigation";
+import { useState } from "react";
 
 export default function Dashboard() {
     const isMobile = useIsMobile();
+    const [user, setUser] = useState<User | null>(null);
 
-    const user = {
-        firstName: "Christian",
-    };
+    getUser().then(([success, user]) => {
+        if (!success) {
+            throw redirect("/auth");
+        }
+        setUser(user);
+    });
 
     return (
-        <ProtectedLayout className={`flex w-full flex-col gap-4 ${!isMobile ? "pr-4" : "pr-2"}`}>
+        <UserLayout className={`flex w-full flex-col gap-4 ${!isMobile ? "pr-4" : "pr-2"}`}>
             <Card>
                 <CardHeader>
                     <CardTitle>Willkommen zurück, {user?.firstName}!</CardTitle>
@@ -31,6 +39,6 @@ export default function Dashboard() {
                     </CardContent>
                 </Card>
             </div>
-        </ProtectedLayout>
+        </UserLayout>
     );
 }
