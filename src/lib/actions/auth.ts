@@ -47,6 +47,7 @@ export async function logout(): Promise<boolean> {
         }
 
         await deleteSession(token.value);
+        cookieStore.delete("session");
 
         return true;
     } catch {
