@@ -7,16 +7,10 @@ import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { login } from "@/lib/actions/auth";
+import { authenticate } from "@/lib/actions";
+import { formSchema } from "@/lib/actions";
 
 export function LoginTabContent() {
-    const formSchema = z.object({
-        email: z.string().email(),
-        password: z.string(),
-    });
-
-    type FormSchemaType = z.infer<typeof formSchema>;
-
     const form = useForm<z.infer<typeof formSchema>>({
         resolver: zodResolver(formSchema),
         defaultValues: {
@@ -25,14 +19,10 @@ export function LoginTabContent() {
         },
     });
 
-    const onSubmit = ({ email, password }: FormSchemaType) => {
-        login(email, password);
-    };
-
     return (
         <>
             <Form {...form}>
-                <form onSubmit={form.handleSubmit(onSubmit)}>
+                <form onSubmit={form.handleSubmit((values) => authenticate(values))}>
                     <Card>
                         <CardHeader>
                             <CardTitle> Mit E-Mail anmelden </CardTitle>

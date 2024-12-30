@@ -1,12 +1,12 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { UserLayout } from "@/components/layouts/user";
-import { getUser } from "@/lib/actions/auth";
+import { auth } from "@/auth";
 
 export default async function Dashboard() {
-    const [success, user] = await getUser();
+    const session = await auth();
 
-    if (!success) {
+    if (!session?.user) {
         return null;
     }
 
@@ -14,7 +14,7 @@ export default async function Dashboard() {
         <UserLayout className={"flex w-full flex-col gap-4 sm:pr-2 md:pr-4"}>
             <Card>
                 <CardHeader>
-                    <CardTitle>Willkommen zurück, {user?.firstName}!</CardTitle>
+                    <CardTitle>Willkommen zurück, {session.user.name}!</CardTitle>
                     <CardDescription>Schön, dass du wieder da bist.</CardDescription>
                 </CardHeader>
             </Card>

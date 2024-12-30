@@ -9,31 +9,12 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { ChevronsUpDown, LogOut, Cog, User2 } from "lucide-react";
 import { SidebarMenu, SidebarMenuItem, SidebarMenuButton } from "@/components/ui/sidebar";
-import { getUser, logout } from "@/lib/actions/auth";
-import { useEffect, useState } from "react";
-import { User } from "@/server/db/schema";
-import { Loading } from "../Loading";
-import { navigate } from "@/lib/actions/navigate";
+import { auth, signOut } from "@/auth";
 
-export function UserFooter() {
-    const [user, setUser] = useState<User | null>();
-    const [loading, setLoading] = useState(true);
+export async function UserFooter() {
+    const session = await auth();
 
-    useEffect(() => {
-        getUser().then(([success, user]) => {
-            if (!success) {
-                return;
-            }
-            setLoading(false);
-            setUser(user);
-        });
-    }, [setUser]);
-
-    const logoutHandler = async () => {
-        if (await logout()) {
-            navigate("/");
-        }
-    };
+    if (!session?.user) return null;
 
     return (
         <SidebarMenu>
@@ -43,23 +24,19 @@ export function UserFooter() {
                         <SidebarMenuButton
                             size="lg"
                             className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground">
-                            {loading || !user ? (
-                                <Loading />
-                            ) : (
-                                <>
-                                    <Avatar className="h-8 w-8 rounded-lg">
-                                        <AvatarImage src={"/images/logo.png"} alt="ATec Logo" />
-                                        <AvatarFallback className="rounded-lg">
-                                            {`${user.firstName.charAt(0)}${user.lastName.charAt(0)}`}
-                                        </AvatarFallback>
-                                    </Avatar>
-                                    <div className="grid flex-1 text-left text-sm">
-                                        <span className="truncate font-semibold leading-3">{`${user.firstName} ${user.lastName}`}</span>
-                                        <span className="truncate text-sm leading-tight">{user.role}</span>
-                                    </div>
-                                    <ChevronsUpDown className="ml-auto size-4" />
-                                </>
-                            )}
+                            <>
+                                <Avatar className="h-8 w-8 rounded-lg">
+                                    <AvatarImage src={"/images/logo.png"} alt="ATec Logo" />
+                                    <AvatarFallback className="rounded-lg">
+                                        {session.user.name?.charAt(0)}
+                                    </AvatarFallback>
+                                </Avatar>
+                                <div className="grid flex-1 text-left text-sm">
+                                    <span className="truncate font-semibold leading-3">{session.user.name}</span>
+                                    <span className="truncate text-sm leading-tight">{session.user.email}</span>
+                                </div>
+                                <ChevronsUpDown className="ml-auto size-4" />
+                            </>
                         </SidebarMenuButton>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent
@@ -78,9 +55,14 @@ export function UserFooter() {
                             </DropdownMenuItem>
                         </DropdownMenuGroup>
                         <DropdownMenuSeparator />
-                        <DropdownMenuItem onClick={logoutHandler}>
-                            <LogOut />
-                            Abmelden
+                        <DropdownMenuItem>
+                            <form
+                                action={async () => {
+                                    await signOut();
+                                }}>
+                                <LogOut />
+                                Abmelden
+                            </form>
                         </DropdownMenuItem>
                     </DropdownMenuContent>
                 </DropdownMenu>

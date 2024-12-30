@@ -1,5 +1,5 @@
+import { auth } from "@/auth";
 import { Layout } from "@/components/layouts/base";
-import { getUser } from "@/lib/actions/auth";
 import { redirect } from "next/navigation";
 
 export default async function AuthLayout({
@@ -7,9 +7,9 @@ export default async function AuthLayout({
 }: Readonly<{
     children: React.ReactNode;
 }>) {
-    const [success] = await getUser();
+    const session = await auth();
 
-    if (success) {
+    if (session?.user) {
         return redirect("/dashboard");
     }
 

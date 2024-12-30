@@ -5,7 +5,7 @@ import { Form } from "@/components/ui/form";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { UserLayout } from "@/components/layouts/user";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { useForm, UseFormReturn } from "react-hook-form";
 import { z } from "zod";
 import { VeranstalterFormCard } from "./(cards)/veranstalter";
@@ -13,14 +13,11 @@ import { GenerellesFormCard } from "./(cards)/generelles";
 import { ZeitenFormCard } from "./(cards)/zeiten";
 import { SubmitFormCard } from "./(cards)/submit";
 import { EquipmentFormCard } from "./(cards)/equipment";
-import { getUser } from "@/lib/actions/auth";
-import { User } from "@/server/db/schema";
-import { Loading } from "@/components/Loading";
+import { auth } from "@/auth";
 
 const formSchema = z.object({
     veranstalter: z.object({
-        vorname: z.string().nonempty("Required"),
-        nachname: z.string().nonempty("Required"),
+        name: z.string().nonempty("Required"),
         email: z.string().email(),
     }),
     veranstaltung: z.object({
@@ -60,15 +57,12 @@ export type FormSchema = z.infer<typeof formSchema>;
 export default function EventForm() {
     const isMobile = useIsMobile();
 
-    const [user, setUser] = useState<User | null>(null);
-
     const form: UseFormReturn<FormSchema, unknown, undefined> = useForm<FormSchema>({
         resolver: zodResolver(formSchema),
         defaultValues: {
             veranstalter: {
-                vorname: user?.firstName ?? "",
-                nachname: user?.lastName ?? "",
-                email: user?.email ?? "",
+                name: "",
+                email: "",
             },
             veranstaltung: {
                 titel: "",
@@ -100,20 +94,12 @@ export default function EventForm() {
     });
 
     useEffect(() => {
-        getUser().then(([success, user]) => {
-            if (!success) {
-                return;
+        auth().then((s) => {
+            if (s && s.user) {
+                form.setValue("veranstalter.name", s.user.name ?? "");
+                form.setValue("veranstalter.email", s.user.email ?? "");
             }
-            setUser(user);
         });
-    }, [setUser]);
-
-    useEffect(() => {
-        if (user) {
-            form.setValue("veranstalter.vorname", user.firstName);
-            form.setValue("veranstalter.nachname", user.lastName);
-            form.setValue("veranstalter.email", user.email);
-        }
 
         const inTwoWeeks = new Date(Date.now() + 1209600000);
         form.setValue("zeiten", [
@@ -123,7 +109,7 @@ export default function EventForm() {
                 end: "13:25",
             },
         ]);
-    }, [user, form]);
+    }, [form]);
 
     const onSubmit = (data: FormSchema) => {
         console.log(data);
@@ -140,17 +126,11 @@ export default function EventForm() {
                         können Sie die technische Betreuung einer Veranstaltung beantragen.
                     </CardDescription>
 
-                    {!user ? (
-                        <Loading />
-                    ) : (
-                        <>
-                            <VeranstalterFormCard form={form} />
-                            <GenerellesFormCard form={form} />
-                            <ZeitenFormCard form={form} />
-                            <EquipmentFormCard form={form} />
-                            <SubmitFormCard form={form} />
-                        </>
-                    )}
+                    <VeranstalterFormCard form={form} />
+                    <GenerellesFormCard form={form} />
+                    <ZeitenFormCard form={form} />
+                    <EquipmentFormCard form={form} />
+                    <SubmitFormCard form={form} />
                 </form>
             </Form>
         </UserLayout>
