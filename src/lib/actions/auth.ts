@@ -1,15 +1,12 @@
-"use server"
+"use server";
 
 import { cookies } from "next/headers";
-import { db } from "@/server/db/index";
-import { sessions, User } from "@/server/db/schema";
-import { eq } from "drizzle-orm";
 import { compare } from "bcrypt";
+import { deleteSession, getUserByEmail, getUserBySession, newSession } from "@/server/queries/auth";
+import { User } from "@/server/db/schema";
 
 export async function login(email: string, password: string): Promise<boolean> {
-    const user = await db.query.users.findFirst({
-        where: (users, { eq }) => eq(users.email, email),
-    });
+    const user = await getUserByEmail(email);
 
     if (!user) {
         return false;
@@ -21,12 +18,7 @@ export async function login(email: string, password: string): Promise<boolean> {
 
     const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
 
-    const [{ insertedToken }] = await db
-        .insert(sessions)
-        .values({
-            userId: user.id,
-        })
-        .returning({ insertedToken: sessions.token });
+    const insertedToken = await newSession(user.id);
 
     if (!insertedToken) {
         return false;
@@ -54,8 +46,7 @@ export async function logout(): Promise<boolean> {
             return true; // already not logged in
         }
 
-        await db.delete(sessions).where(eq(sessions.token, token.value));
-        cookieStore.delete("session");
+        await deleteSession(token.value);
 
         return true;
     } catch {
@@ -72,23 +63,13 @@ export async function getUser(): Promise<[true, User] | [false, null]> {
             return [false, null];
         }
 
-        const userSessionResult = await db.query.sessions.findFirst({
-            where: (sessions, { eq }) => eq(sessions.token, token.value),
-            columns: {
-                id: false,
-                token: false,
-                userId: false,
-            },
-            with: {
-                user: true,
-            },
-        });
+        const user = await getUserBySession(token.value);
 
-        if (!userSessionResult || !userSessionResult.user) {
+        if (!user) {
             return [false, null];
         }
 
-        return [true, userSessionResult.user];
+        return [true, user];
     } catch {
         return [false, null];
     }

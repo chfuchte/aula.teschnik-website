@@ -13,7 +13,7 @@ import { getUser, logout } from "@/lib/actions/auth";
 import { useEffect, useState } from "react";
 import { User } from "@/server/db/schema";
 import { Loading } from "../Loading";
-import { redirect } from "next/navigation";
+import { navigate } from "@/lib/actions/navigate";
 
 export function UserFooter() {
     const [user, setUser] = useState<User | null>();
@@ -31,7 +31,7 @@ export function UserFooter() {
 
     const logoutHandler = async () => {
         if (await logout()) {
-            throw redirect("/");
+            navigate("/");
         }
     };
 

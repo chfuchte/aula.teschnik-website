@@ -5,6 +5,7 @@ import { getUser } from "@/lib/actions/auth";
 
 export default async function Dashboard() {
     const [success, user] = await getUser();
+
     if (!success) {
         return null;
     }
@@ -13,7 +14,7 @@ export default async function Dashboard() {
         <UserLayout className={"flex w-full flex-col gap-4 sm:pr-2 md:pr-4"}>
             <Card>
                 <CardHeader>
-                    <CardTitle>Willkommen zurück, {user.firstName}!</CardTitle>
+                    <CardTitle>Willkommen zurück, {user?.firstName}!</CardTitle>
                     <CardDescription>Schön, dass du wieder da bist.</CardDescription>
                 </CardHeader>
             </Card>
